@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ inputs, pkgs, ... }:
 
 let
   nativeBuildInputs = [
@@ -13,10 +13,16 @@ let
     pkgs.vulkan-loader
     pkgs.vulkan-helper
     pkgs.vulkan-headers
+    
+    pkgs.shader-slang
+    pkgs.spirv-tools
+
     pkgs.glfw
+    
     pkgs.kdePackages.wayland
     pkgs.kdePackages.wayland-protocols
     pkgs.wayland-scanner
+    
     pkgs.libxkbcommon.dev
     pkgs.libX11.dev
     pkgs.libXi.dev
@@ -24,148 +30,39 @@ let
     pkgs.libXinerama.dev
     pkgs.libXcursor.dev
     pkgs.libXext.dev
+    
     pkgs.doxygen
   ];
 
-  cmakeFlags = [
-    "-Wno-dev"
-    "-U'*'"
-    "-DSH_VULKAN_BUILD_EXAMPLES=ON"
-    "-DSH_VULKAN_BUILD_DOCS=ON"
-    "-DSH_VULKAN_SKIP_HEADLESS_SCENE=ON"
-    "-DSH_GLFW_CMAKE_CONFIG_PATH=${pkgs.glfw.dev}/lib/cmake/glfw3/glfw3Config.cmake"
-    
-    # GLFW relies on pkg-config files (`.pc`) to locate the required libraries, so should I
-
-    # If dev outputs have been set correctly, no need to pass manually these libraries and headers
-
-    #"-DVulkan_INCLUDE_DIR=${pkgs.vulkan-headers}/include"
-    #"-DVulkan_LIBRARY=${pkgs.vulkan-loader}/lib/libvulkan.so"
-    #
-    #"-DX11_X11_INCLUDE_PATH=${pkgs.libX11.dev}/include"
-    #"-DX11_X11_LIB=${pkgs.libX11}/lib/libX11.so"
-    #
-    #"-DX11_Xrandr_INCLUDE_PATH=${pkgs.libXrandr.dev}/include"
-    #"-DX11_Xrandr_LIB=${pkgs.libXrandr}/lib/libXrandr.so"
-    #
-    #"-DX11_Xinerama_INCLUDE_PATH=${pkgs.libXinerama.dev}/include"
-    #"-DX11_Xinerama_LIB=${pkgs.libXinerama}/lib/libXinerama.so"
-    #
-    #"-DX11_Xkb_INCLUDE_PATH=${pkgs.libxkbcommon.dev}/include"
-    #
-    #"-DX11_Xcursor_INCLUDE_PATH=${pkgs.libXcursor.dev}/include"
-    #"-DX11_Xcursor_LIB=${pkgs.libXcursor}/lib/libXcursor.so"
-    #
-    #"-DX11_Xi_INCLUDE_PATH=${pkgs.libXi.dev}/include"
-    #"-DX11_Xi_LIB=${pkgs.libXi}/lib/libXi.so"
-    #
-    #"-DX11_Xshape_INCLUDE_PATH=${pkgs.libxext.dev}/include"
-
-    # PKG_CONFIG_PATH should be set automatically
-    #"-DPKG_CONFIG_PATH=${pkgs.wayland.dev}/lib/pkgconfig:${pkgs.wayland-protocols}/lib/pkgconfig:${pkgs.libxkbcommon.dev}/lib/pkgconfig:${pkgs.libX11}/lib/pkgconfig:${pkgs.libXi}/lib/pkgconfig:${pkgs.libXrandr}/lib/pkgconfig:${pkgs.libXinerama}/lib/pkgconfig:${pkgs.libXcursor}/lib/pkgconfig"
+  cmakeDefaultFlags = [
+    "-DVK_TOOLKIT_BUILD_EXAMPLES=ON"
+    #"-DVK_TOOLKIT_BUILD_DOCS=ON"
+    "-DVK_TOOLKIT_SPIRV_REFLECT_ROOT_DIR=${builtins.toString inputs.spirv-reflect}"
+    "-DVK_TOOLKIT_INSTALL_DATADIR=${placeholder "out"}/share/"
   ];
 
-  buildPhase = '' # Starts from build directory
-    make -j $NIX_BUILD_CORES
-    cd ../docs
-    doxygen
-  '';
+  cmakeFlags = cmakeDefaultFlags ++ [
+    "-Wno-dev"
+    "-U'*'"
+  ];
 
-  pkgConfig = ''
-    prefix=$out
-    exec_prefix=${"\${prefix}"}
-    libdir=${"\${exec_prefix}"}/lib
-    includedir=${"\${prefix}"}/shvulkan/include
-
-    Name: shvulkan
-    Description: A C wrapper around the Vulkan API
-    Version: 1.1.1
-    URL: https://www.github.com/mrsinho/shvulkan
-    Requires.private:
-    Libs:
-    Libs.private: -lvulkan
-    Cflags: -I${"\${includedir}"}
-  '';
-
-  # See derivation outputs https://nix.dev/manual/nix/2.29/store/derivation/outputs
-  installPhase = '' # Starts from build directory (equal to $PWD)
-    
-    # Create out output (for shared libraries, executables, docs)
-    mkdir -p $out/bin
-    mkdir -p $out/examples/shaders
-    mkdir -p $out/docs
-    
-    # Create dev output (for static libraries, headers)
-    mkdir -p $dev/lib
-    mkdir -p $dev/include
-    mkdir -p $dev/lib/pkgconfig
-
-    # Copy binaries to dev output
-    cp -r $PWD/../bin  $out/
-    cp -r $PWD/../examples/shaders/ $out/examples/
-    cp -r $PWD/../docs $out/
-
-    # Copy static libraries and headers to dev closure
-    cp -r $PWD/../lib $dev/
-    cp -r $PWD/../shvulkan/include $dev/
-
-    # Copy pkg-config file to dev closure
-    cp $PWD/../shvulkan/shvulkan.pc $dev/lib/pkgconfig/
-  '';
-
-  # Shouldn't be needed anymore if the dev outputs have been set correctly
+  # Shoguldn't be needed anymore if the dev outputs have been created correctly
   LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath (buildInputs); # Allows linking to shared libraries (e.g. through dlopen)
 
-  # Shouldn't be needed anymore if the dev outputs have been set correctly
-  environmentSetup = ''
-    export Vulkan_INCLUDE_DIR=${pkgs.vulkan-headers}/include
-    export Vulkan_LIBRARY=${pkgs.vulkan-loader}/lib/libvulkan.so
-
-    export X11_X11_LIB=${pkgs.libX11}/lib/libX11.so
-    export X11_Xrandr_LIB=${pkgs.libXrandr}/lib/libXrandr.so
-    export X11_Xinerama_LIB=${pkgs.libXinerama}/lib/libXinerama.so
-    export X11_Xkb_LIB=${pkgs.libxkbcommon}/lib/libxkbcommon.so
-    export X11_Xcursor_LIB=${pkgs.libXcursor}/lib/libXcursor.so
-    export X11_Xi_LIB=${pkgs.libXi}/lib/libXi.so
-    export X11_Xshape_LIB=${pkgs.libXext}/lib/libXext.so
-
-    export PKG_CONFIG_PATH=${pkgs.wayland.dev}/lib/pkgconfig:${pkgs.wayland-protocols}/lib/pkgconfig:${pkgs.libxkbcommon.dev}/lib/pkgconfig:${pkgs.libX11}/lib/pkgconfig:${pkgs.libXi}/lib/pkgconfig:${pkgs.libXrandr}/lib/pkgconfig:${pkgs.libXinerama}/lib/pkgconfig:${pkgs.libXcursor}/lib/pkgconfig
-
-    substitute ./CMakePresets.json.in ./CMakePresets.json \
-      --subst-var-by VULKAN_HEADERS ${pkgs.vulkan-headers} \
-      --subst-var-by VULKAN_LOADER  ${pkgs.vulkan-loader} \
-      --subst-var-by X11            ${pkgs.libX11} \
-      --subst-var-by XRANDR         ${pkgs.libXrandr} \
-      --subst-var-by XINERAMA       ${pkgs.libXinerama} \
-      --subst-var-by XCURSOR        ${pkgs.libXcursor} \
-      --subst-var-by XI             ${pkgs.libXi} \
-      --subst-var-by XEXT           ${pkgs.libXext} \
-      --subst-var-by XKBCOMMON_DEV  ${pkgs.libxkbcommon.dev}\
-      \
-      --subst-var-by WAYLAND_DEV       ${pkgs.wayland.dev}\
-      --subst-var-by WAYLAND_PROTOCOLS ${pkgs.wayland-protocols}\
-  '';
-in
-{
-  nativeBuildInputs = nativeBuildInputs;
-  buildInputs = buildInputs;
-
-  shvulkan = pkgs.stdenv.mkDerivation {
-    pname = "shvulkan";
+  vk-toolkit = pkgs.stdenv.mkDerivation {
+    pname = "vk-toolkit";
     version = "1.1.1";
 
     src = ./../.;
 
     outputs = [ "out" "dev" ]; # Pointed by $out and $dev
 
-    nativeBuildInputs = nativeBuildInputs;
-    buildInputs = buildInputs;
-
-    cmakeFlags = cmakeFlags;
-
-    buildPhase = buildPhase;
-    installPhase = installPhase;
-  
+    inherit nativeBuildInputs buildInputs cmakeFlags;
   };
+
+in
+{
+  
+  inherit vk-toolkit cmakeDefaultFlags nativeBuildInputs buildInputs;
 
 }

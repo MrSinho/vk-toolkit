@@ -10,35 +10,28 @@
       url = "github:numtide/flake-utils";
     };
 
+    spirv-reflect = {
+      url = "github:KhronosGroup/SPIRV-Reflect";
+      flake = false;
+    };
+
   };
 
-  outputs = { nixpkgs, flake-utils, ... }: flake-utils.lib.eachDefaultSystem (system:
+  outputs = inputs @ { nixpkgs, flake-utils, ... }: flake-utils.lib.eachDefaultSystem (system:
     let
     
       pkgs = import nixpkgs { inherit system; };
 
-      pipeline = import ./nix/pipeline.nix { inherit pkgs; };
-
-      shvulkanApp = flake-utils.lib.mkApp {
-        drv = pipeline.shvulkan;
-      };
+      pipeline = import ./nix/pipeline.nix { inherit inputs pkgs; };
 
     in rec {
 
       packages = {
-        shvulkan = pipeline.shvulkan;
-        default = pipeline.shvulkan;
+        vk-toolkit = pipeline.vk-toolkit;
+        default = packages.vk-toolkit;
       };
 
-      apps = {
-        shvulkan = shvulkanApp;
-        default = shvulkanApp;
-      };
-
-      devShells.default = pkgs.mkShell {
-        nativeBuildInputs = pipeline.nativeBuildInputs;
-        buildInputs = pipeline.buildInputs;
-      };
+      devShells = import ./nix/devShells.nix { inherit inputs pkgs pipeline; };
 
     }
 

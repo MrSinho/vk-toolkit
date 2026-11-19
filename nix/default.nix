@@ -1,7 +1,14 @@
-{ pkgs, ... }:
+{
+  pkgs,
+  spirv-reflect ? builtins.fetchGit {
+    url = "https://github.com/KhronosGroup/SPIRV-Reflect";
+  },
+  ...
+}:
 
 let
-  pipeline = import ./pipeline { inherit pkgs; };
+  inputs = { inherit spirv-reflect; };
+  pipeline = import ./pipeline.nix { inherit inputs pkgs; };
 in
 
-pipeline.shvulkan
+pipeline."vk-toolkit"

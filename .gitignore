@@ -71,3 +71,9 @@ release-linux/*
 docs/html/*
 docs/xml/*
 docs/latex/*
+
+.builds
+.build
+
+.kdev4
+*.kdev4
