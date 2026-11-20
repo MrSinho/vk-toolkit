@@ -21,9 +21,9 @@ vk-toolkit is a small set of libraries and examples to assist writing high-perfo
 - [x] Entry points (partially).
 - [x] Descriptor sets.
 - [x] Push-constant ranges.
-- [x] Vertex inputs; composite struct inputs still need support. Future work includes looking up locations by name and using binding metadata to determine offsets.
-- [x] Specialization constants; looking up constant IDs by name remains future work.
-- [ ] Atomics, demonstrated with a quad whose fragments follow a sequence without interpolation, or with a simpler compute example.
+- [x] Vertex inputs (partially); composite struct inputs still need support.
+- [x] Specialization constants.
+- [ ] Atomics
 - [ ] Textures.
 - [ ] Dispatch local size.
 
@@ -32,6 +32,7 @@ vk-toolkit is a small set of libraries and examples to assist writing high-perfo
 - Android build using the same codebase (Android NDK).
 - Web build using the same codebase.
 - Improve vertex-input reflection: flatten composite types, support struct inputs, and use reflected location and binding data to determine input layout.
+- Atomic reflectoin, demonstrated with a quad whose fragments follow a sequence without interpolation, or with a simpler compute example.
 - Add a tessellation state example.
 - Add a geometry shader example.
 - Add a PBR shader example.
