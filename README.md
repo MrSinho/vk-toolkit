@@ -70,17 +70,19 @@ The flake provides the `vk-toolkit` package and a default development shell. The
 
 ### Dev shell
 
-You can build the project through a Nix dev shells:
+You can build the project using a Nix dev shell:
 
 ```sh
 nix develop .
 mkdir build
 cmake -S . -B ./build
 cmake --build build
-./build/vk-toolkit-clear-color
-./build/vk-toolkit-scene
-./build/vk-toolkit-compute
+cmake --install build --prefix "$PWD/install"
+./bin/install/vk-toolkit-clear-color
+./bin/install/vk-toolkit-scene
+./bin/install/vk-toolkit-compute
 ```
+
 
 ### Build
 
