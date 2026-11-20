@@ -18,7 +18,7 @@ vk-toolkit is a small set of libraries and examples to assist writing high-perfo
 
 ### Shader reflection
 
-- [~] Entry points.
+- [x] Entry points (partially).
 - [x] Descriptor sets.
 - [x] Push-constant ranges.
 - [x] Vertex inputs; composite struct inputs still need support. Future work includes looking up locations by name and using binding metadata to determine offsets.
