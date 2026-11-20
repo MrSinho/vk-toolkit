@@ -367,7 +367,7 @@ static GLFWwindow* initializeWindow(const char* title, int* pWidth, int* pHeight
 	return window;
 }
 
-static VkShellResult initializeVulkan(
+static VkResult initializeVulkan(
 	GLFWwindow* window,
 	uint32_t apiVersion,
 	Driver* pDriver,
@@ -391,11 +391,11 @@ static VkShellResult initializeVulkan(
 		.pInstance               = &pDriver->instance
 	});
 	if (result != VK_SUCCESS) {
-		return VK_SHELL_ERROR_VULKAN;
+		return result;
 	}
 
 	result = glfwCreateWindowSurface(pDriver->instance, window, VK_NULL_HANDLE, &pSurfaceData->surface);
-	VK_TOOLKIT_VK_RESULT_ERROR(result, return VK_SHELL_ERROR_VULKAN);
+	VK_TOOLKIT_VK_RESULT_ERROR(result, return result);
 
 	VkShellResult shellResult = vkShellSelectPhysicalDevice((VkShellSelectPhysicalDeviceArgs) {
 		.instance                        = pDriver->instance,
@@ -407,7 +407,7 @@ static VkShellResult initializeVulkan(
 		.pPhysicalDeviceProperties = &pDriver->physicalDeviceProperties
 	});
 	if (shellResult != VK_SHELL_SUCCESS) {
-		return shellResult;
+		return VK_ERROR_INITIALIZATION_FAILED;
 	}
 
 	uint32_t graphicsQueueFamiliesIndices[VK_SHELL_MAX_STACK_QUEUE_FAMILY_COUNT] = { 0 };
@@ -428,7 +428,7 @@ static VkShellResult initializeVulkan(
 		.pQueueFamiliesProperties     = VK_NULL_HANDLE
 	});
 	if (shellResult != VK_SHELL_SUCCESS) {
-		return shellResult;
+		return VK_ERROR_INITIALIZATION_FAILED;
 	}
 
 	pQueues->graphicsQueueFamilyIndex = graphicsQueueFamiliesIndices[0];
@@ -470,13 +470,13 @@ static VkShellResult initializeVulkan(
 		.pDeviceQueueInfos = deviceQueueInfos
 	});
 	if (result != VK_SUCCESS) {
-		return VK_SHELL_ERROR_VULKAN;
+		return result;
 	}
 
 	vkGetDeviceQueue(pDriver->device, pQueues->graphicsQueueFamilyIndex, 0, &pQueues->graphicsQueue);
 	vkGetDeviceQueue(pDriver->device, pQueues->presentQueueFamilyIndex,  0, &pQueues->presentQueue);
 
-	return VK_SHELL_SUCCESS;
+	return VK_SUCCESS;
 }
 
 static VkResult createSwapchainResources(

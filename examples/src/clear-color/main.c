@@ -23,7 +23,7 @@ int main(void) {
 	}
 	glfwGetFramebufferSize(window, &width, &height);
 
-	VK_TOOLKIT_SHELL_CHECK(
+	VK_TOOLKIT_VK_RESULT_ERROR(
 		initializeVulkan(window, VK_API_VERSION_1_4, &driver, &queues, &surfaceData),
 		return cleanup(window, &driver, &queues, &commands, &surfaceData, &swapchainData, 1)
 	);

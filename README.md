@@ -1,23 +1,33 @@
 # vk-toolkit
 
-[![GitHub repository](https://img.shields.io/badge/GitHub-vk--toolkit-181717?style=for-the-badge&logo=github)](https://github.com/mrsinho/shvulkan)
+[![GitHub repository](https://img.shields.io/badge/GitHub-vk--toolkit-181717?style=for-the-badge&logo=github)](https://github.com/mrsinho/vk-toolkit)
 ![License](https://img.shields.io/github/license/mrsinho/shvulkan?style=for-the-badge)
-![C and C++](https://img.shields.io/badge/C%20and%20C++-compatible-3CFADC?style=for-the-badge)
 
-vk-toolkit is a small set of libraries and examples for building Vulkan applications. It provides `vk-shell` for common Vulkan setup and utility operations, and `vk-bridge` for shader reflection and Vulkan layout helpers. The application keeps control of Vulkan objects and pipeline creation.
+vk-toolkit is a small set of libraries and examples to assist writing high-performance C/C++ Vulkan applications, without losing complexity.
 
-The libraries expose C-friendly headers. `vk-shell` is implemented in C; `vk-bridge` is implemented in C++ and has a C-compatible API. The examples include both C and C++ code.
+> The project has moved from the old `shvulkan` wrapper layout to separate `vk-shell` (focused on the Vulkan API) and `vk-bridge` (for shader reflection) libraries. It uses Slang for the example shaders and SPIRV-Reflect for shader metadata. `vk-bridge` supplies helpers for reflection merging and Vulkan layout creation; graphics and compute pipeline creation stays in the application.
 
 ## Features
 
-- Helpers for common Vulkan setup and API operations.
-- Shader reflection using SPIRV-Reflect, with descriptor and push-constant merging through `vk-bridge`.
+- Helpers for common Vulkan setup and API operations using `shvulkan`.
+- Shader reflection using SPIRV-Reflect and `vk-bridge` for a simpler interface when creating pipelines.
 - Application control over Vulkan, Slang, and SPIRV-Reflect APIs.
 - CMake and Nix build support.
 - Vulkan dynamic rendering, dynamic state, and Synchronization 2 demonstrated in the examples.
 - Examples for clear-color rendering, a reflected Slang scene, and compute dispatch.
 
-The project has moved from the old `shvulkan` wrapper layout to separate `vk-shell` and `vk-bridge` libraries. It uses Slang for the example shaders and SPIRV-Reflect for shader metadata. `vk-bridge` supplies helpers for reflection merging and Vulkan layout creation; graphics and compute pipeline creation stays in the application.
+### CMake targets
+
+| Target | Type | Dependencies | Availability |
+| --- | --- | --- | --- |
+| `vk-shell` | Static library | Vulkan | Always built |
+| `spirv-reflect` | Static library | SPIRV-Reflect source tree | Always built |
+| `vk-bridge` | Static library | Vulkan, SPIRV-Tools, `spirv-reflect` | Always built |
+| `vk-toolkit-clear-color` | Executable | `vk-shell`, GLFW, X11, libm | `VK_TOOLKIT_BUILD_EXAMPLES=ON` |
+| `vk-toolkit-scene` | Executable | `vk-shell`, `vk-bridge`, Slang, GLFW, X11, libm | `VK_TOOLKIT_BUILD_EXAMPLES=ON` |
+| `vk-toolkit-compute` | Executable | `vk-shell`, `vk-bridge`, Slang, libm | `VK_TOOLKIT_BUILD_EXAMPLES=ON` |
+
+The install exports the library targets with the `vkToolkit::` namespace.
 
 ## Examples
 
@@ -29,83 +39,25 @@ The project has moved from the old `shvulkan` wrapper layout to separate `vk-she
 
 When examples are enabled, shader sources are installed under `share/shaders` and the graphics examples require a working window system.
 
-## Build with CMake
-
-### Requirements
-
-- CMake 3.25 or newer.
-- A C and C++ compiler.
-- Vulkan headers, loader, and development package.
-- SPIRV-Tools.
-- SPIRV-Reflect source files (`spirv_reflect.h` and `spirv_reflect.c`).
-- For examples: Slang, GLFW, and X11 development files. The clear-color and scene examples also need a windowing environment at runtime.
-
-The SPIRV-Reflect source directory must be provided through `VK_TOOLKIT_SPIRV_REFLECT_ROOT_DIR` as a CMake variable or environment variable.
-
-```sh
-cmake -S . -B build \
-  -DVK_TOOLKIT_SPIRV_REFLECT_ROOT_DIR=/path/to/SPIRV-Reflect
-cmake --build build
-cmake --install build --prefix "$PWD/install"
-```
-
-The base build creates and installs the `vk-shell`, `spirv-reflect`, and `vk-bridge` static libraries. To include the examples, set `VK_TOOLKIT_BUILD_EXAMPLES=ON`:
-
-```sh
-cmake -S . -B build \
-  -DVK_TOOLKIT_SPIRV_REFLECT_ROOT_DIR=/path/to/SPIRV-Reflect \
-  -DVK_TOOLKIT_BUILD_EXAMPLES=ON
-cmake --build build
-```
-
-After installing the package, a CMake consumer can use the exported library targets:
-
-```cmake
-find_package(vkToolkit CONFIG REQUIRED)
-target_link_libraries(my_app PRIVATE
-  vkToolkit::vk-shell
-  vkToolkit::vk-bridge
-)
-```
-
-### CMake targets and options
-
-| Target | Type | Availability |
-| --- | --- | --- |
-| `vk-shell` | Static library | Always built |
-| `spirv-reflect` | Static library | Always built |
-| `vk-bridge` | Static library | Always built |
-| `vk-toolkit-clear-color` | Executable | `VK_TOOLKIT_BUILD_EXAMPLES=ON` |
-| `vk-toolkit-scene` | Executable | `VK_TOOLKIT_BUILD_EXAMPLES=ON` |
-| `vk-toolkit-compute` | Executable | `VK_TOOLKIT_BUILD_EXAMPLES=ON` |
-
-The install exports the library targets with the `vkToolkit::` namespace.
-
-| Option or variable | Default | Purpose |
-| --- | --- | --- |
-| `VK_TOOLKIT_BUILD_EXAMPLES` | `OFF` | Build and install the three example executables and shader sources. |
-| `VK_TOOLKIT_BUILD_DOCS` | `OFF` | Reserved for documentation generation. The documentation sources and CMake integration are currently absent, so enabling this option is not supported yet. |
-| `VK_TOOLKIT_SPIRV_REFLECT_ROOT_DIR` | Required | Path to the SPIRV-Reflect source checkout. Can also be set in the environment. |
-| `VK_TOOLKIT_ROOT_DIR` | Set by the project | Root path used by the included CMake scripts. |
-| `VK_TOOLKIT_VERSION` | `1.1.1` | Project/package version. |
-
-`VK_TOOLKIT_BUILD_EXAMPLES` and `VK_TOOLKIT_BUILD_DOCS` can also be set as environment variables to `ON`. The documentation option is declared but its build function is not currently connected.
-
-## Nix
+## Build Nix derivation
 
 The flake provides the `vk-toolkit` package and a default development shell. The package derivation enables examples.
 
-### Development shell
+### Dev shell
+
+You can build the project through a Nix dev shells:
 
 ```sh
 nix develop .
-cmake -S . -B build -G Ninja
+mkdir build
+cmake -S . -B ./build
 cmake --build build
+./build/vk-toolkit-clear-color
+./build/vk-toolkit-scene
+./build/vk-toolkit-compute
 ```
 
-The development shell supplies the Vulkan, Slang, SPIRV-Tools, SPIRV-Reflect, GLFW, and window-system dependencies. It also enables example configuration by default.
-
-### Build and run the package
+### Build
 
 ```sh
 nix build .#vk-toolkit
@@ -114,7 +66,7 @@ nix build .#vk-toolkit
 
 The GUI examples are installed alongside the compute example as `result/bin/vk-toolkit-clear-color` and `result/bin/vk-toolkit-scene`; they require a usable display session.
 
-### Use the package from a NixOS configuration
+### Import Nix module
 
 Import the package expression from a checkout or fetched source tree:
 
@@ -128,7 +80,7 @@ in
 }
 ```
 
-### Use the package from another flake
+### Import as a flake
 
 Add vk-toolkit as an input:
 
@@ -156,6 +108,39 @@ Then refer to its package for the current system:
 }
 ```
 
+## Build with CMake only
+
+### Requirements
+
+All the requirements are already provided by the [Nix flake](./flake.nix) in the repository:
+- CMake 3.25 or newer.
+- C and C++ compilers.
+- Vulkan headers, loader, and development package.
+- SPIRV-Tools.
+- SPIRV-Reflect source files (`spirv_reflect.h` and `spirv_reflect.c`).
+- For examples: Slang, GLFW, and X11 development files. The clear-color and scene examples also need a windowing environment at runtime.
+
+The SPIRV-Reflect source directory must be provided through `VK_TOOLKIT_SPIRV_REFLECT_ROOT_DIR` as a CMake variable or environment variable.
+
+```sh
+cmake -S . -B build \
+  -DVK_TOOLKIT_SPIRV_REFLECT_ROOT_DIR=/path/to/SPIRV-Reflect
+cmake --build build
+cmake --install build --prefix "$PWD/install"
+```
+
+The base build creates and installs the `vk-shell`, `spirv-reflect`, and `vk-bridge` static libraries. To include the examples, set `VK_TOOLKIT_BUILD_EXAMPLES=ON`:
+
+After installing the package, a CMake consumer can use the exported library targets:
+
+```cmake
+find_package(vkToolkit CONFIG REQUIRED)
+target_link_libraries(my_app PRIVATE
+  vkToolkit::vk-shell
+  vkToolkit::vk-bridge
+)
+```
+
 ## Recommended Vulkan guides
 
 - [Vulkan Tutorial (vklearn)](https://vklearn.org/)
@@ -166,7 +151,6 @@ Then refer to its package for the current system:
 
 - Android build using the same codebase (Android NDK).
 - Web build using the same codebase.
-- Rename the repository to `vk-toolkit` and the KDevelop project file to `vk-toolkit.kdev4`.
 - Improve vertex-input reflection: flatten composite types, support struct inputs, and use reflected location and binding data to determine input layout.
 - Add a tessellation state example.
 - Add a geometry shader example.

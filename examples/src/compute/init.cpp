@@ -17,7 +17,7 @@ uint8_t initializeVulkan(Driver* pDriver, Commands* pCommands) {
 		#endif//DEBUG
 		.extensionCount = 0,
 		.ppExtensionNames = NULL,
-		.apiVersion = VK_API_VERSION_1_3,
+		.apiVersion = VK_API_VERSION_1_4,
 		.pInstance = &pDriver->instance
 	});
 	VK_TOOLKIT_VK_RESULT_ERROR(result, return 0);
