@@ -16,6 +16,31 @@ vk-toolkit is a small set of libraries and examples to assist writing high-perfo
 - Vulkan dynamic rendering, dynamic state, and Synchronization 2 demonstrated in the examples.
 - Examples for clear-color rendering, a reflected Slang scene, and compute dispatch.
 
+### Shader reflection
+
+- [~] Entry points.
+- [x] Descriptor sets.
+- [x] Push-constant ranges.
+- [x] Vertex inputs; composite struct inputs still need support. Future work includes looking up locations by name and using binding metadata to determine offsets.
+- [x] Specialization constants; looking up constant IDs by name remains future work.
+- [ ] Atomics, demonstrated with a quad whose fragments follow a sequence without interpolation, or with a simpler compute example.
+- [ ] Textures.
+- [ ] Dispatch local size.
+
+## Roadmap
+
+- Android build using the same codebase (Android NDK).
+- Web build using the same codebase.
+- Improve vertex-input reflection: flatten composite types, support struct inputs, and use reflected location and binding data to determine input layout.
+- Add a tessellation state example.
+- Add a geometry shader example.
+- Add a PBR shader example.
+- Test stencil attachments.
+- Add a model-inference example.
+- Consolidate the reusable example utilities under a clearly named common layer and document why each helper exists.
+
+The Nix and CMake build path, Slang shader compilation in the examples, the CMake package export, and application-controlled error reporting are in place. The application remains responsible for pipeline creation, while `vk-bridge` provides reflection and layout helpers.
+
 ### CMake targets
 
 | Target | Type | Dependencies | Availability |
@@ -146,31 +171,6 @@ target_link_libraries(my_app PRIVATE
 - [Vulkan Tutorial (vklearn)](https://vklearn.org/)
 - [Sascha Willems Vulkan samples](https://github.com/SaschaWillems/Vulkan)
 - [Vulkan Guide](https://vkguide.dev/)
-
-## Roadmap
-
-- Android build using the same codebase (Android NDK).
-- Web build using the same codebase.
-- Improve vertex-input reflection: flatten composite types, support struct inputs, and use reflected location and binding data to determine input layout.
-- Add a tessellation state example.
-- Add a geometry shader example.
-- Add a PBR shader example.
-- Test stencil attachments.
-- Add a model-inference example.
-- Consolidate the reusable example utilities under a clearly named common layer and document why each helper exists.
-
-The Nix and CMake build path, Slang shader compilation in the examples, the CMake package export, and application-controlled error reporting are in place. The application remains responsible for pipeline creation, while `vk-bridge` provides reflection and layout helpers.
-
-### Shader reflection through SPIRV-Reflect and vk-bridge
-
-- [~] Entry points.
-- [x] Descriptor sets.
-- [x] Push-constant ranges.
-- [x] Vertex inputs; composite struct inputs still need support. Future work includes looking up locations by name and using binding metadata to determine offsets.
-- [x] Specialization constants; looking up constant IDs by name remains future work.
-- [ ] Atomics, demonstrated with a quad whose fragments follow a sequence without interpolation, or with a simpler compute example.
-- [ ] Textures.
-- [ ] Dispatch local size.
 
 ### Future shengine architecture
 
