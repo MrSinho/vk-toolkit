@@ -128,7 +128,7 @@ Then refer to its package for the current system:
 { inputs, pkgs, ... }:
 {
   environment.systemPackages = [
-    inputs.vk-toolkit.packages.${pkgs.system}.default
+    inputs.vk-toolkit.packages.${pkgs.stdenv.hostPlatform.system}.default
   ];
 }
 ```
