@@ -55,8 +55,6 @@ let
 
     src = ./../.;
 
-    outputs = [ "out" "dev" ]; # Pointed by $out and $dev
-
     inherit nativeBuildInputs buildInputs cmakeFlags;
   };
 
