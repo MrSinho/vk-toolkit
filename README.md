@@ -122,7 +122,7 @@ Add vk-toolkit as an input:
 }
 ```
 
-Then refer to its package for the current system:
+Then refer to its package for the current system...
 
 ```nix
 { inputs, pkgs, ... }:
@@ -130,6 +130,23 @@ Then refer to its package for the current system:
   environment.systemPackages = [
     inputs.vk-toolkit.packages.${pkgs.stdenv.hostPlatform.system}.default
   ];
+}
+```
+
+Or for your Nix derivation...
+
+```nix
+{ inputs, pkgs, ... }:
+{
+  myDerivation = pkgs.stdenv.mkDerivation {
+    # [...]
+    buildInputs = [
+      inputs.vk-toolkit.packages.${pkgs.stdenv.hostPlatform.system}.default
+    ];
+  };
+
+    inputs.vk-toolkit.packages.${pkgs.stdenv.hostPlatform.system}.default
+
 }
 ```
 
