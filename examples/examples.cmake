@@ -82,4 +82,9 @@ install(
     DESTINATION ${CMAKE_INSTALL_DATADIR}/shaders
 )
 
+install(
+    DIRECTORY ${VK_TOOLKIT_ROOT_DIR}/examples/src/common/
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/common
+)
+
 endfunction()
